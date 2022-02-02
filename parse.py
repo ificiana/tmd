@@ -13,8 +13,10 @@ from django.template.exceptions import (TemplateSyntaxError,
 from .exec import _exec, _infer
 
 # regex patterns for context inference
-RE_LIST = re.compile(r"(.*?):\s*list\n*\s*=>\s*(.*)\s*\n")
-RE_DICT = re.compile(r"(.*?):\s*dict\n*\s*=>\s*\[(.*)]\s*\n")
+RE_LIST = re.compile(r"(\w+?):\s*list\n*\s*=>\s*(.*)\s*\n")
+RE_DICT = re.compile(r"(\w+?):\s*dict\n*\s*=>\s*\[(.*)]\s*\n")
+RE_STR = re.compile(r"(\w+?):\s*str\n*\s*=>\s*(.*)\s*\n")
+# Todo: make RE_STR such that it allows default to be str
 # regex pattern for filters declaration
 RE_FN = re.compile(r"(.*)?\((.*?)\)\s*<=\s*(.*?)$")
 
@@ -70,11 +72,14 @@ class Parse:
         # Todo: support multiline declarations
         lists = RE_LIST.findall(_tmd_context)
         dicts = RE_DICT.findall(_tmd_context)
+        strs = RE_STR.findall(_tmd_context)
         _body = ""
         for i in lists:
             _body += f"{i[0]} = {i[1]}\n"
         for i in dicts:
             _body += f"{i[0]} = {{{i[1]}}}\n"
+        for i in strs:
+            _body += f"{i[0]} = {i[1]}\n"
         return _context | _infer(_body, _context)
 
     def _exec_helper(self, _fn: str) -> Union[Callable, None]:
