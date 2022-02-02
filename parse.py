@@ -13,9 +13,7 @@ from django.template.exceptions import (TemplateSyntaxError,
 from .exec import _exec, _infer
 
 # regex patterns for context inference
-RE_LIST = re.compile(r"(\w+?):\s*list\n*\s*=>\s*(.*)\s*\n")
-RE_DICT = re.compile(r"(\w+?):\s*dict\n*\s*=>\s*\[(.*)]\s*\n")
-RE_STR = re.compile(r"(\w+?):\s*str\n*\s*=>\s*(.*)\s*\n")
+RE_CTX = re.compile(r"(\w+?):\s*(\w*?)\n*\s*=>\s*(.*)\s*\n")
 # Todo: make RE_STR such that it allows default to be str
 # regex pattern for filters declaration
 RE_FN = re.compile(r"(.*)?\((.*?)\)\s*<=\s*(.*?)$")
@@ -28,6 +26,7 @@ class TMDExtract:
 
     def __init__(self, _text):
         self.text = _text
+
     # Todo: implement sanitisation
 
     def sanitise(self):
@@ -70,17 +69,16 @@ class Parse:
         :return: updated context dict
         """
         # Todo: support multiline declarations
-        lists = RE_LIST.findall(_tmd_context)
-        dicts = RE_DICT.findall(_tmd_context)
-        strs = RE_STR.findall(_tmd_context)
-        _body = ""
-        for i in lists:
-            _body += f"{i[0]} = {i[1]}\n"
-        for i in dicts:
-            _body += f"{i[0]} = {{{i[1]}}}\n"
-        for i in strs:
-            _body += f"{i[0]} = {i[1]}\n"
-        return _context | _infer(_body, _context)
+        _nodes = RE_CTX.findall(_tmd_context)
+        if _len := len(_nodes):
+            _body = ""
+            for i in range(_len):
+                if _nodes[i][1] in ("list", "str"):
+                    _body += f"{_nodes[i][0]} = {_nodes[i][2]}\n"
+                elif _nodes[i][1] in ("dict",):
+                    _body += f"{_nodes[i][0]} = {{{_nodes[i][2]}}}\n"
+            return _context | _infer(_body, _context)
+        return _context
 
     def _exec_helper(self, _fn: str) -> Union[Callable, None]:
         """
