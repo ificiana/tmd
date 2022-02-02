@@ -3,12 +3,14 @@ Implements the parser
 """
 
 import re
-from typing import Callable, Union
+from re import Match
+from typing import Callable, Union, List, Dict, Optional
 
 from django.template import Template, Context
-from django.template.defaultfilters import linebreaks, register
+from django.template.defaultfilters import register
 from django.template.exceptions import (TemplateSyntaxError,
                                         TemplateDoesNotExist)
+from django.utils.html import linebreaks
 
 from .exec import _exec, _infer
 
@@ -49,7 +51,7 @@ class Parse:
         self.filters = []
 
     @staticmethod
-    def _modify(_text: str, _d: dict[str, str]) -> str:
+    def _modify(_text: str, _d: Dict[str, Union[str, Callable]]) -> str:
         """
         Helper function to bulk modify a string
         :param _text: the string to modify
@@ -61,7 +63,7 @@ class Parse:
         return _text
 
     @staticmethod
-    def _infer_helper(_tmd_context: str, _context: dict) -> dict:
+    def _infer_helper(_tmd_context: str, _context: Dict) -> dict:
         """
         Intermediate function to help infer context from a tmd file
         :param _tmd_context: string extracted from within -[context]
@@ -80,14 +82,15 @@ class Parse:
             return _context | _infer(_body, _context)
         return _context
 
-    def _exec_helper(self, _fn: str) -> Union[Callable, None]:
+    def _exec_helper(self, _fn: Union[Optional[Match[str]], str]) -> Optional[Callable]:
         """
         Intermediate function to help compile filter functions
             extracted from a tmd file
         :param _fn: filter declaration extracted from within -[filters]
         :return: a function object
         """
-        _fn = RE_FN.match(_fn.strip())
+        if type(_fn) == str:
+            _fn = RE_FN.match(_fn.strip())
         # ignore wrong syntax
         if not _fn:
             return None
@@ -104,7 +107,7 @@ class Parse:
         _body = f"def {_def}(a, b=None): return {_body}"
         return _exec(_body, _def)
 
-    def _register(self, _fn_list: list) -> None:
+    def _register(self, _fn_list: List) -> None:
         """
         Internal function to register filter functions with django
         :param _fn_list: lines split from string extracted from within -[filters]
@@ -113,7 +116,7 @@ class Parse:
             if (_fn_obj := self._exec_helper(_fn)) is not None:
                 register.filter(_fn_obj.__name__, _fn_obj)
 
-    def parse(self, context: dict) -> str:
+    def parse(self, context: Dict) -> str:
         """
         Function to parse the tmd file into a html string
         :param context: dictionary of context variables
