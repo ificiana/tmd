@@ -132,10 +132,11 @@ class Parse:
         key_list = re_keys.findall(_txt)
         keys = {i[0].strip(): i[1].strip() for i in key_list}
         if "extends" in keys and keys["extends"] not in ["default", ""]:
-            self.final = f"{{% extends '{keys['extends'].replace('.', '/')}.html' %}}"
+            self.final = f"{{% extends '{keys['extends'].replace('.', '/')}.html' %}}{{% load " \
+                         f"static %}} "
             keys.pop("extends")
         else:
-            self.final = "{% extends 'base/_base.html' %}"
+            self.final = "{% extends 'base/_base.html' %}{% load static %}"
         if "filters" in keys:
             self.filters = keys["filters"].split("\n")
             keys.pop("filters")
