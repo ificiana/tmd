@@ -13,6 +13,7 @@ from django.template.exceptions import (TemplateSyntaxError,
 from django.utils.html import linebreaks
 
 from .exec import _exec, _infer
+from .urls import re_url_helper
 
 # regex patterns for context inference
 RE_CTX = re.compile(r"(\w+?):\s*(\w*?)\n*\s*=>\s*(.*)\s*\n")
@@ -155,6 +156,7 @@ class Parse:
             r"\*(.*?)\*": r"<i>\1</i>",
             r"__(.+)?__": r"<u>\1</u>",
             r"-{3,}\s*?\n": r"<hr>",
+            r"\[(.*?)](?:\((.*?)\))?": re_url_helper,
         })
         self.final += f"{{% block body %}}{linebreaks(self.body)}{{% endblock %}}"
         return Template(self.final).render(Context(context))
