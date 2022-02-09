@@ -1,6 +1,7 @@
 """
 Injection safe execution (controlled globals and locals)
 """
+import datetime
 
 
 def _exec(*__args):
