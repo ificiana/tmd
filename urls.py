@@ -9,7 +9,7 @@ RE_LINK = re.compile(r"\[(.*?)]\((.*?)\)")
 def is_url_image(image_url):
     image_formats = ("image/png", "image/jpeg", "image/jpg")
     try:
-        return requests.head(image_url).headers["content-type"] in image_formats
+        return requests.head(image_url, timeout=0.5).headers["content-type"] in image_formats
     except MissingSchema:
         pass
     return False
