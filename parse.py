@@ -123,13 +123,13 @@ class Parse:
         :param context: dictionary of context variables
         :return: html string
         """
-        text = self._modify(self.raw, {
+        _txt = self._modify(self.raw, {
             r"\/\/.*?\n": r"\n",
-            r"(-\[.+?\n)": r"-[\n\1",
+            r"(-\[.+?(?:\n|$))": r"-[\n\1",
         }) + "-["
         re_keys = re.compile(r"(?:^|\n)(?:-\[(.*?)]((?:.*?\r?\n?)*)-\[)+")
         # Todo: Fix for misaligned keys/tags
-        key_list = re_keys.findall(text)
+        key_list = re_keys.findall(_txt)
         keys = {i[0].strip(): i[1].strip() for i in key_list}
         if "extends" in keys and keys["extends"] not in ["default", ""]:
             self.final = f"{{% extends '{keys['extends'].replace('.', '/')}.html' %}}"
@@ -147,7 +147,7 @@ class Parse:
             if _k != "body":
                 self.final += f"{{% block {_k} %}} {_v} {{% endblock %}}"
         self._register(self.filters)
-        self.body = re.sub(r"\\\s*?\n", "", keys["body"])
+        self.body = re.sub(r"\\\s*?\n", "", keys["body"]) if "body" in keys else self.raw
         for i in range(6, 0, -1):
             re_h = re.compile(rf"#{{{i}}}\s+(.*?)\n")
             self.body = re_h.sub(rf"<h{i}>\1</h{i}>", self.body)
@@ -186,4 +186,4 @@ def parse(text, context):
     except AttributeError as exc:
         return err(exc, "This error can occur if filter or tag names begin with `_`")
     except TemplateDoesNotExist as exc:
-        return err(exc, f"\nInvalid value for -[extends], {str(exc)} not found")
+        return err(exc, f"\nInvalid value for -[extends] or -[include], {str(exc)} not found")

@@ -1,15 +1,17 @@
 import re
 
 import requests
+from requests.exceptions import MissingSchema
 
 RE_LINK = re.compile(r"\[(.*?)]\((.*?)\)")
 
 
 def is_url_image(image_url):
     image_formats = ("image/png", "image/jpeg", "image/jpg")
-    _r = requests.head(image_url)
-    if _r.headers["content-type"] in image_formats:
-        return True
+    try:
+        return requests.head(image_url).headers["content-type"] in image_formats
+    except MissingSchema:
+        pass
     return False
 
 
