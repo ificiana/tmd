@@ -124,7 +124,7 @@ class Parse:
         :return: html string
         """
         _txt = self._modify(self.raw, {
-            r"\/\/.*?\n": r"\n",
+            # r"\/\/.*?\n": r"\n",
             r"(-\[.+?(?:\n|$))": r"-[\n\1",
         }) + "-["
         re_keys = re.compile(r"(?:^|\n)(?:-\[(.*?)]((?:.*?\r?\n?)*)-\[)+")
