@@ -150,7 +150,7 @@ class Parse:
         self._register(self.filters)
         self.body = re.sub(r"\\\s*?\n", "", keys["body"]) if "body" in keys else self.raw
         for i in range(6, 0, -1):
-            re_h = re.compile(rf"#{{{i}}}\s+(.*?)\n")
+            re_h = re.compile(rf"#{{{i}}}\s+(.*?)(?:\n|$)")
             self.body = re_h.sub(rf"<h{i}>\1</h{i}>", self.body)
         self.body = self._modify(self.body, {
             r"\*\*(.*?)\*\*": r"<b>\1</b>",
