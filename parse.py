@@ -158,6 +158,7 @@ class Parse:
             r"__(.+)?__": r"<u>\1</u>",
             r"-{3,}\s*?\n": r"<hr>",
             r"\[(.*?)](?:\((.*?)\))?": re_url_helper,
+            r"{rb:(.+?)\|(.+?)}": r"<ruby>\1<rp>(</rp><rt>\2</rt><rp>)</rp></ruby>"
         })
         self.final += f"{{% block body %}}{linebreaks(self.body)}{{% endblock %}}"
         return Template(self.final).render(Context(context))
