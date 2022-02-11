@@ -39,5 +39,5 @@ class Render:
         self.context["text"] = parse(self.tmd, self.context)
         self.template_location = template_location or "base/index.html"
 
-    def __call__(self, request):
+    def render(self, request):
         return _render(request, self.template_location, context=self.context)
